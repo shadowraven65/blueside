@@ -13,6 +13,7 @@ This utility is designed to assist users in transferring logs from a CTF (Captur
 ## Prerequisites
 - Docker installed on the host machine.
 - User added to the `docker` group (to run Docker commands without `sudo`).
+  - If you don't want to do this you can opt to run the whole program with `sudo` 
 - VPN connection to the CTF environment (typically through `tun0` interface).
 
 ## Usage
