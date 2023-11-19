@@ -71,6 +71,5 @@ Contributions to improve this utility are welcome.
 ## License
 MIT
 
-## ToDo
-Right now its set for getting logs from Linux and its grabbing everything.   
-I will be working on a more dynamic scp command based on the target host.
+## Acknowledgements
+Special thanks to Byte for her support throughout the development of this project.
