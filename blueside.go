@@ -9,7 +9,7 @@ import (
     "os"
     "os/exec"
     "strings"
-	  "bytes"
+    "bytes"
 )
 
 
@@ -117,9 +117,9 @@ func main() {
         fmt.Println("Failed to configure Splunk to monitor directory:", err)
         return
     }
-    scpCommand := fmt.Sprintf("mkdir /tmp/$(hostname) && find /var/log -type f ! -name \"*.[0-9]\" -exec cp '{}' /tmp/$(hostname) \\; && chmod 644 /tmp/$(hostname)/* && scp -r -P 22022 /tmp/$(hostname) blueside@%s:/tmp/ctflogs && rm -rf /tmp/$(hostname)", tun0IP)
-
-    displayComplete(password, scpCommand)
+    scpLinuxCommand := fmt.Sprintf("mkdir /tmp/$(hostname) && find /var/log -type f ! -name \"*.[0-9]\" -exec cp '{}' /tmp/$(hostname) \\; && chmod 644 /tmp/$(hostname)/* && scp -r -P 22022 /tmp/$(hostname) blueside@%s:/tmp/ctflogs && rm -rf /tmp/$(hostname)", tun0IP)
+    logsWinCommand := "$hostName = [System.Net.Dns]::GetHostName(); $targetPath = \"C:\\Users\\Administrator\\Documents\\$hostName\"; New-Item -ItemType Directory -Force -Path $targetPath; Get-EventLog -LogName System | Export-Csv -Path \"$targetPath\\system_logs.csv\"; Get-EventLog -LogName Application | Export-Csv -Path \"$targetPath\\application_logs.csv\"; Get-EventLog -LogName Security | Export-Csv -Path \"$targetPath\\security_logs.csv\"; If (Test-Path C:\\inetpub) { New-Item -ItemType Directory -Force -Path \"$targetPath\\inetpub\"; Copy-Item -Path C:\\inetpub\\logs\\LogFiles\\* -Destination \"$targetPath\\inetpub\" }"
+    displayComplete(password, scpLinuxCommand, logsWinCommand)
 
 }
 
@@ -211,9 +211,8 @@ func downloadDockerImage(imageName string) {
     fmt.Printf("%s Docker image downloaded successfully.\n", imageName)
 }
 
-
 func displayIntro(tun0IP string) {
-    fmt.Println("Welcome to the Blueside CTF Log Transfer Utility")
+    fmt.Println("Welcome to the CTF Log Transfer Utility")
     fmt.Println("-------------------------------------------------")
     fmt.Println("This utility will assist you in transferring logs from a CTF box to a local Splunk instance for analysis.")
     fmt.Println("\nProcess Overview:")
@@ -227,20 +226,33 @@ func displayIntro(tun0IP string) {
     fmt.Println("-------------------------------------------------")
     fmt.Println("Are you ready to proceed? (yes/no):")
 }
-func displayComplete(password string, scpCommand string) {
+
+func displayComplete(password string, scpLinuxCommand string, logsWinCommand string) {
     fmt.Println("Splunk Container started with SSH enabled")
     fmt.Println("-------------------------------------------------")
     fmt.Println("The Splunk instance is up and running and will accept SCP file transfers to load logs into Splunk")
     fmt.Println("\nNotes:")
-    fmt.Println("1. Go to 127.0.0.1:8999 and login with admin:bluesidepassword to access splunk")
-    fmt.Println("2. Run the following command on the target host to grab logs to send to Splunk.")
-    fmt.Println("=============== SCP COMMAND ===============")
-    fmt.Println(scpCommand)
-    fmt.Println("===========================================")
+    fmt.Println("1. Go to http://127.0.0.1:8999 and login with admin:bluesidepassword to access Splunk")
+    fmt.Println("2. Gather all the logs you need to prep sending to Splunk.\n")
+    fmt.Println(" Linux is normally pretty easy, copy and paste the below command to grab basic logs")
+    fmt.Println("   This includes the SCP command so take note of the SSH password for the user below")
+    fmt.Println("================ COMMAND FOR LINUX ================")
+    fmt.Println(scpLinuxCommand)
+    fmt.Println("===================================================")
+    fmt.Println("  If there are more you find, you can send those as well.\n")
+    fmt.Println(" Windows can be a bit more of a pain based on your shell or how you connected.")
+    fmt.Println("  To start, the below command will just aggregate all the logs we want to a single place.")
+    fmt.Println("=============== COMMAND FOR WINDOWS ===============")
+    fmt.Println(logsWinCommand)
+    fmt.Println("===================================================")
+    fmt.Println("  This will consolidate all logs to the Admin Documents folder.")
+    fmt.Println("  If you have a Meterpreter session or an evil-winrm session, you can just download the logs")
+    fmt.Println("  Then SCP them to /tmp/ctflogs from your local host or use docker cp\n")      
     fmt.Printf("4. Password for blueside user is: %s\n", password)
     fmt.Println("5. Logs should show up automatically in index=main.")
     fmt.Println("-------------------------------------------------")
-    fmt.Println("Note: When you are done you can just 'docker stop' the splunk container and it will nuke itself" )
+    fmt.Println("Note: When you are done, you can just 'docker stop' the Splunk container, and it will nuke itself" )
     fmt.Println("-------------------------------------------------")
     fmt.Println("Have fun Hunting!!")
 }
+
